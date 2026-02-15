@@ -1,0 +1,20 @@
+# Python
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+
+# Env
+.env
+*.env
+.venv/
+.NYC_Taxi_venv
+
+# Logs
+*.log
+
+# rest
+data/
