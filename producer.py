@@ -1,30 +1,44 @@
 from confluent_kafka import Producer
-import uuid
+import pandas as pd
 import json
+import time
 
-def deilvery_report(err, msg):
+KAFKA_TOPIC = "rides_raw"
+KAFKA_SERVER = "localhost:9092"
+FILE_PATH = "data/yellow_tripdata_2025-11.parquet"
+
+
+def delivery_report(err, msg):
     if err:
-        print(f" Delivery failed: {err}")
+        print(f"Delivery failed: {err}")
     else:
-        print(f" Delivered: {msg.value().decode('utf-8')}")
-        print(f" Delivered to \"{msg.topic()}\" : partition {msg.partition()} : at offset {msg.offset()} ")
+        print(f"Delivered to {msg.topic()} "
+              f"[{msg.partition()}] at offset {msg.offset()}")
 
 
 producer_config = {
-    'bootstrap.servers': 'localhost:9092'
+    'bootstrap.servers': KAFKA_SERVER,
+    'client.id': 'nyc-producer'
 }
+
 producer = Producer(producer_config)
 
-order = {
-    "order_id": str(uuid.uuid4()),
-    "user": "Taxi driver 1",
-    "item": "20min ride",
-    "quantity": 4
-}
-                # to string     ## and then to binary
-binary_value = json.dumps(order).encode("utf-8")
-# if message/event send for topic that does not exist yet, it will be automatically created by Kafka
-producer.produce("orders",
-                 binary_value,
-                 callback=deilvery_report)
+print("Loading parquet...")
+df = pd.read_parquet(FILE_PATH) # there we simulate the data getting into the system
+
+print("Starting stream simulation...")
+
+for _, row in df.iterrows():
+    value = json.dumps(row.to_dict(), default=str).encode("utf-8")
+
+    producer.produce(
+        topic=KAFKA_TOPIC,
+        value=value,
+        callback=delivery_report
+    )
+
+    producer.poll(0)  
+    time.sleep(0.05)  # we simulate live data here by custom 0.05s sleeptime between each record of data
+
 producer.flush()
+print("Live data streaming finished.")

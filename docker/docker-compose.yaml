@@ -1,8 +1,5 @@
 # docker-compose
-version: "3.8"
-
 services:
-  # Kafka config below
   kafka:
     image: confluentinc/cp-kafka:7.8.3
     container_name: NYC_Taxi
@@ -11,14 +8,11 @@ services:
 
     environment:
       KAFKA_KRAFT_MODE: 'true'
-
       CLUSTER_ID: '1L6g7nGhU-eAKfL--X25wo'
       KAFKA_NODE_ID: 1
-
       KAFKA_PROCESS_ROLES: broker,controller
-      KAFKA_CONTROLLER_QUORUM_VOTERS: 1@kafka:9093 # czy tutaj nie ytrzeba zmienic nazwy z kafka na NYc_taxi jak w dockerze
+      KAFKA_CONTROLLER_QUORUM_VOTERS: 1@kafka:9093
       KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
-
       KAFKA_LISTENERS: PLAINTEXT://0.0.0.0:9092,CONTROLLER://0.0.0.0:9093
       KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://localhost:9092
       KAFKA_CONTROLLER_LISTENER_NAMES: CONTROLLER
@@ -28,8 +22,7 @@ services:
       - kafka_kraft:/var/lib/kafka/data
     networks:
       - lakehouse-net
-  
-  # PySpark config
+
   spark-master:
     image: apache/spark:3.5.0
     container_name: spark-master
@@ -39,6 +32,8 @@ services:
     ports:
       - "8080:8080"
       - "7077:7077"
+    volumes:
+      - ../lake:/lake
     networks:
       - lakehouse-net
 
@@ -51,13 +46,14 @@ services:
       spark://spark-master:7077
     depends_on:
       - spark-master
+    volumes:
+      - ../lake:/lake
     networks:
       - lakehouse-net
 
-# Global volumes
 volumes:
   kafka_kraft:
-# Global networks
+
 networks:
   lakehouse-net:
     driver: bridge
