@@ -6,10 +6,10 @@ from pyspark.sql.functions import (
 from pyspark.sql.types import *
 
 KAFKA_BOOTSTRAP = "kafka:9092"
-TOPIC = "rides_raw"
+TOPIC = "rides_stream"
 
-BRONZE_PATH = "/lake/bronze/rides"
-CHECKPOINT_PATH = "/lake/checkpoint_bronze/rides_stream"
+BRONZE_PATH = "/app/lake/bronze/rides"
+CHECKPOINT_PATH = "/app/lake/checkpoint_bronze/rides_stream"
 
 def build_spark():
     return (
@@ -18,12 +18,17 @@ def build_spark():
         .master("spark://spark-master:7077")
         .config("spark.sql.extensions", "io.delta.sql.DeltaSparkSessionExtension")
         .config("spark.sql.catalog.spark_catalog", "org.apache.spark.sql.delta.catalog.DeltaCatalog")
+        .config(
+            "spark.jars.packages",
+            "io.delta:delta-spark_2.12:3.1.0,"
+            "org.apache.spark:spark-sql-kafka-0-10_2.12:3.5.0"
+        )
         .getOrCreate()
     )
 
 def main():
     spark = build_spark()
-    spark.sparkContext.setLogLevel("WARN")
+    spark.sparkContext.setLogLevel("WARN") # no need for INFO Logs
 
     schema = StructType([
         StructField("VendorID", IntegerType()),

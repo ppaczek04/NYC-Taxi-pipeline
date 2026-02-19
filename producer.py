@@ -3,7 +3,7 @@ import pandas as pd
 import json
 import time
 
-KAFKA_TOPIC = "rides_raw"
+KAFKA_TOPIC = "rides_stream"
 KAFKA_SERVER = "localhost:9092"
 FILE_PATH = "data/yellow_tripdata_2025-11.parquet"
 

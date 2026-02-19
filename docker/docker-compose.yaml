@@ -14,14 +14,14 @@ services:
       KAFKA_CONTROLLER_QUORUM_VOTERS: 1@kafka:9093
       KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
       KAFKA_LISTENERS: PLAINTEXT://0.0.0.0:9092,CONTROLLER://0.0.0.0:9093
-      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://localhost:9092
+      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://kafka:9092
       KAFKA_CONTROLLER_LISTENER_NAMES: CONTROLLER
       KAFKA_LOG_DIRS: /tmp/kraft-combined-logs
 
     volumes:
-      - kafka_kraft:/var/lib/kafka/data
+      - kafka_kraft:/var/lib/kafka/data # providing named volume we created to the docker container
     networks:
-      - lakehouse-net
+      - lakehouse-net # put all service containers into one private virtual web
 
   spark-master:
     image: apache/spark:3.5.0
@@ -33,9 +33,9 @@ services:
       - "8080:8080"
       - "7077:7077"
     volumes:
-      - ../lake:/lake
+      - ..:/app # <path_on_host>:<path_on_docker>
     networks:
-      - lakehouse-net
+      - lakehouse-net # put all service containers into one private virtual web
 
   spark-worker:
     image: apache/spark:3.5.0
@@ -45,14 +45,14 @@ services:
       org.apache.spark.deploy.worker.Worker
       spark://spark-master:7077
     depends_on:
-      - spark-master
+      - spark-master # ensures spark-master container will be build before spark-worker
     volumes:
-      - ../lake:/lake
+      - ..:/app # <path_on_host>:<path_on_docker>
     networks:
-      - lakehouse-net
+      - lakehouse-net # put all service containers into one private virtual web
 
 volumes:
-  kafka_kraft:
+  kafka_kraft: #creation of 'named volume' for Kafka container instead of bind mount (docker will have permament storage which he will manage on its own)
 
 networks:
   lakehouse-net:
