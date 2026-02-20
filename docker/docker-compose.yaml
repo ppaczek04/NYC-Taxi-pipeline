@@ -51,8 +51,24 @@ services:
     networks:
       - lakehouse-net # put all service containers into one private virtual web
 
+  producer:
+    image: python:3.11-slim
+    container_name: nyc-producer
+    depends_on:
+      - kafka
+    volumes:
+      - ..:/app
+    working_dir: /app  # its like automatic cd app inside the container's console
+    command: > # we want to run multiple commands so we do bash -c and then use operator &&
+      bash -c "
+      pip install confluent-kafka pandas pyarrow && 
+      python producer.py
+      " 
+    networks:
+      - lakehouse-net
+
 volumes:
-  kafka_kraft: #creation of 'named volume' for Kafka container instead of bind mount (docker will have permament storage which he will manage on its own)
+  kafka_kraft: #creation of 'named volume' for Kafka container instead of bind mount (docker container will have permament storage which he will manage on its own)
 
 networks:
   lakehouse-net:

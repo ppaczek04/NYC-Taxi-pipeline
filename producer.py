@@ -4,7 +4,7 @@ import json
 import time
 
 KAFKA_TOPIC = "rides_stream"
-KAFKA_SERVER = "localhost:9092"
+KAFKA_SERVER = "kafka:9092"
 FILE_PATH = "data/yellow_tripdata_2025-11.parquet"
 
 
