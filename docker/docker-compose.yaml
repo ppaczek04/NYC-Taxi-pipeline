@@ -19,7 +19,7 @@ services:
       KAFKA_LOG_DIRS: /tmp/kraft-combined-logs
 
     volumes:
-      - kafka_kraft:/var/lib/kafka/data # providing named volume we created to the docker container
+      - kafka_kraft:/var/lib/kafka/data # providing 'named volume' we created to the docker container
     networks:
       - lakehouse-net # put all service containers into one private virtual web
 
@@ -58,13 +58,13 @@ services:
       - kafka
     volumes:
       - ..:/app
-    working_dir: /app  # its like automatic cd app inside the container's console
+    working_dir: /app  # its like automatic 'cd /app' inside the container's console
     command: > # we want to run multiple commands so we do bash -c and then use operator &&
       bash -c "
       pip install confluent-kafka pandas pyarrow && 
       python producer.py
       " 
-    networks:
+    networks: #pip install tempoarary for testing purposes (inside command)
       - lakehouse-net
 
 volumes:

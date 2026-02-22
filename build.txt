@@ -1,0 +1,26 @@
+/opt/spark/bin/spark-submit \
+  --conf spark.jars.ivy=/tmp/.ivy2 \
+  --packages io.delta:delta-spark_2.12:3.1.0 \
+  /app/spark/batch_to_bronze.py
+
+
+docker exec -it spark-worker bash
+
+/opt/spark/bin/spark-submit \
+  --conf spark.jars.ivy=/tmp/.ivy2 \
+  --conf spark.executor.memory=2g \
+  --conf spark.driver.memory=2g \
+  --conf spark.executor.cores=2 \
+  --conf spark.default.parallelism=4 \
+  --packages io.delta:delta-spark_2.12:3.1.0 \
+  /app/spark/batch_to_bronze.py
+
+/opt/spark/bin/spark-submit \
+  --conf spark.jars.ivy=/tmp/.ivy2 \
+  --conf spark.executor.memory=2g \
+  --conf spark.driver.memory=2g \
+  --conf spark.executor.cores=2 \
+  --conf spark.default.parallelism=4 \
+  --packages io.delta:delta-spark_2.12:3.1.0,org.apache.spark:spark-sql-kafka-0-10_2.12:3.5.0 \
+  /app/spark/stream_to_bronze.py
+

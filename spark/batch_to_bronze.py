@@ -4,8 +4,8 @@ from pyspark.sql.functions import (
     year, month, col, to_timestamp
 )
 
-RAW_PATH = "/data/yellow_tripdata_2025-*.parquet"
-BRONZE_PATH = "/lake/bronze/rides"
+RAW_PATH = "/app/data/yellow_tripdata_2025-*.parquet"
+BRONZE_PATH = "/app/lake/bronze/rides"
 
 def build_spark():
     return (
@@ -23,13 +23,19 @@ def main():
 
     df = spark.read.parquet(RAW_PATH)
 
-    df = df.withColumn(
-        "pickup_ts",
-        to_timestamp(col("tpep_pickup_datetime"))
-    )
+    # df = df.withColumn(
+    #     "pickup_ts",
+    #     to_timestamp(col("tpep_pickup_datetime"))
+    # )
+
+    # Parquet already has timestamp_ntz -> keep it as timestamp
+    df = df.withColumn("pickup_ts", col("tpep_pickup_datetime"))
 
     df = df.withColumn("year", year(col("pickup_ts"))) \
            .withColumn("month", month(col("pickup_ts")))
+    
+    # last available month (11 - november) will be downaloded in a 'stream' mode
+    df = df.filter(~((col("year") == 2025) & (col("month") == 11)))
 
     df = df.withColumn("_ingest_ts", current_timestamp()) \
            .withColumn("_source", lit("batch")) \
@@ -40,7 +46,7 @@ def main():
         df.write
         .format("delta")
         .mode("append")
-        .partitionBy("year", "month")
+        .partitionBy("year", "month") #same partiiton schema as in stream_to_bronze
         .save(BRONZE_PATH)
     )
 

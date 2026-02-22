@@ -68,6 +68,14 @@ def main():
         to_timestamp(col("tpep_pickup_datetime"))
     )
 
+    # NO NEED FOR THAT BECAUSE PRODUCER DID: "json.dumps(row.to_dict(), default=str)" so it was send to kafka as 
+    # "2025-10-30 14:25:09" not "2025-10-30 14:25:09"
+    
+    # df = df.withColumn(
+    #     "pickup_ts",
+    #     from_unixtime(col("tpep_pickup_datetime") / 1000).cast("timestamp")
+    # )
+
     parsed = parsed.withColumn("year", year(col("pickup_ts"))) \
                    .withColumn("month", month(col("pickup_ts")))
 
@@ -80,7 +88,7 @@ def main():
         .format("delta")
         .outputMode("append")
         .option("checkpointLocation", CHECKPOINT_PATH)
-        .partitionBy("year", "month")
+        .partitionBy("year", "month") #same partiiton schema as in batch_to_bronze
         .start(BRONZE_PATH)
     )
 
