@@ -18,6 +18,8 @@ services:
       KAFKA_CONTROLLER_LISTENER_NAMES: CONTROLLER
       KAFKA_LOG_DIRS: /tmp/kraft-combined-logs
 
+      KAFKA_NUM_PARTITIONS: 4 # can be adjusted
+
     volumes:
       - kafka_kraft:/var/lib/kafka/data # providing 'named volume' we created to the docker container
     networks:

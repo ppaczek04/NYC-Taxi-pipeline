@@ -30,11 +30,12 @@ def main():
     spark = build_spark()
     spark.sparkContext.setLogLevel("WARN") # no need for INFO Logs
 
-    schema = StructType([
+    schema = StructType([ # we set streaming_to_bronze types to default 'pandas parquet' types
+        # so that they match (data types loaded by batch_to_bronze and stream_to_bronze)
         StructField("VendorID", IntegerType()),
-        StructField("tpep_pickup_datetime", StringType()),
-        StructField("tpep_dropoff_datetime", StringType()),
-        StructField("passenger_count", IntegerType()),
+        StructField("tpep_pickup_datetime", TimestampNTZType()),
+        StructField("tpep_dropoff_datetime", TimestampNTZType()),
+        StructField("passenger_count", LongType()),
         StructField("trip_distance", DoubleType()),
         StructField("fare_amount", DoubleType()),
         StructField("total_amount", DoubleType())
@@ -65,7 +66,7 @@ def main():
 
     parsed = parsed.withColumn(
         "pickup_ts",
-        to_timestamp(col("tpep_pickup_datetime"))
+        (col("tpep_pickup_datetime"))
     )
 
     # NO NEED FOR THAT BECAUSE PRODUCER DID: "json.dumps(row.to_dict(), default=str)" so it was send to kafka as 
