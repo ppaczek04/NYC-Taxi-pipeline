@@ -11,9 +11,9 @@ FILE_PATH = "data/yellow_tripdata_2025-11.parquet"
 def delivery_report(err, msg):
     if err:
         print(f"Delivery failed: {err}")
-    else:
-        print(f"Delivered to {msg.topic()} "
-              f"[{msg.partition()}] at offset {msg.offset()}")
+    # else:   # THIS SLOWED DOWN SENDING DATA TOO MUCH
+    #     print(f"Delivered to {msg.topic()} "
+    #           f"[{msg.partition()}] at offset {msg.offset()}")
 
 
 producer_config = {
@@ -28,7 +28,7 @@ df = pd.read_parquet(FILE_PATH) # there we simulate the data getting into the sy
 
 print("Starting stream simulation...")
 
-batch_size = 1000
+batch_size = 10000
 for i in range(0, len(df), batch_size):
     batch = df.iloc[i : i + batch_size]
     for _, row in batch.iterrows():
@@ -41,7 +41,7 @@ for i in range(0, len(df), batch_size):
         )
 
         producer.poll(0)  
-        time.sleep(0.001)  # we simulate live data here by custom 0.001s sleeptime between each record of data
+        time.sleep(0.0001)  # we simulate live data here by custom 0.0001s sleeptime between each record of data
         
 producer.flush()
 print("Live data streaming finished.")
