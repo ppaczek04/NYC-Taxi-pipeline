@@ -1,5 +1,5 @@
 from pyspark.sql import SparkSession
-from pyspark.sql.functions import col, current_timestamp, when
+from pyspark.sql.functions import col, current_timestamp, when, from_unixtime
 
 BRONZE_PATH = "/app/lake/bronze/rides"
 SILVER_PATH = "/app/lake/silver/rides"
@@ -20,7 +20,13 @@ def main():
     bronze_df = spark.readStream.format("delta").load(BRONZE_PATH)
 
     # cleaning
-    silver_df = bronze_df.filter(
+    silver_df = bronze_df.withColumn(
+        "pickup_time", 
+        col("tpep_pickup_datetime").cast("timestamp")
+    ).withColumn(
+        "dropoff_time", 
+        col("tpep_dropoff_datetime").cast("timestamp")
+    ).filter(
         (col("passenger_count") > 0) & 
         (col("trip_distance") > 0.0) &
         (col("fare_amount") > 0.0)
@@ -28,7 +34,7 @@ def main():
         "is_long_trip", when(col("trip_distance") > 10, True).otherwise(False)
     ).withColumn(
         "_silver_ingest_ts", current_timestamp()
-    )
+    ).drop("tpep_pickup_datetime", "tpep_dropoff_datetime")
 
     # saving to silver
     query = (silver_df.writeStream
