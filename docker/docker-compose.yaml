@@ -43,9 +43,10 @@ services:
     image: apache/spark:3.5.0
     container_name: spark-worker
     command: >
-      /opt/spark/bin/spark-class
-      org.apache.spark.deploy.worker.Worker
-      spark://spark-master:7077
+      bash -c "
+      pip install pandas openpyxl &&
+      /opt/spark/bin/spark-class org.apache.spark.deploy.worker.Worker spark://spark-master:7077
+      "
     depends_on:
       - spark-master # ensures spark-master container will be build before spark-worker
     volumes:
