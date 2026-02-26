@@ -35,6 +35,8 @@ docker exec -it spark-worker bash
 
 /opt/spark/bin/spark-submit \
   --master spark://spark-master:7077 \
+  --driver-memory 1500M \
+  --executor-memory 1500M \
   --conf spark.jars.ivy=/tmp/.ivy2 \
   --packages io.delta:delta-spark_2.12:3.1.0 \
   /app/spark/silver_to_gold.py

@@ -1,13 +1,16 @@
 from pyspark.sql import SparkSession
 from pyspark.sql.functions import col, hour, avg, sum, count
 
+def build_spark():
+    return (SparkSession.builder 
+        .appName("NYC-Silver-To-Gold") 
+        .master("spark://spark-master:7077") 
+        .config("spark.sql.extensions", "io.delta.sql.DeltaSparkSessionExtension") 
+        .config("spark.sql.catalog.spark_catalog", "org.apache.spark.sql.delta.catalog.DeltaCatalog") 
+        .getOrCreate())
+
 def main():
-    spark = SparkSession.builder \
-        .appName("NYC-Silver-To-Gold") \
-        .master("spark://spark-master:7077") \
-        .config("spark.sql.extensions", "io.delta.sql.DeltaSparkSessionExtension") \
-        .config("spark.sql.catalog.spark_catalog", "org.apache.spark.sql.delta.catalog.DeltaCatalog") \
-        .getOrCreate()
+    spark = build_spark()
 
     # Load Silver data (Batch mode)
     silver_df = spark.read.format("delta").load("/app/lake/silver/rides")
