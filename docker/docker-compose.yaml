@@ -70,6 +70,40 @@ services:
       " 
     networks: #pip install tempoarary for testing purposes (inside command)
       - lakehouse-net
+  
+  prefect-server:
+    image: prefecthq/prefect:2-python3.11
+    container_name: prefect-server
+    command: >
+     bash -c "
+     prefect server start --host 0.0.0.0
+     "
+    ports:
+      - "4200:4200"
+    networks:
+      - lakehouse-net
+
+  prefect:
+    image: prefecthq/prefect:2-python3.11
+    container_name: prefect-orchestrator
+    user: root
+    depends_on:
+      - prefect-server
+    volumes:
+      - ..:/app
+      - /var/run/docker.sock:/var/run/docker.sock # it lets prefect use other containers 
+      # basically prefect in the containers when running for example: subprocess.run(["docker", "exec", ...]
+      # it doenst try to find docker on itself (container), it finds the Docker on my Windows and runs commands.
+    working_dir: /app
+    environment:
+      - PREFECT_API_URL=http://prefect-server:4200/api # prefect local server
+    command: >
+      bash -c "
+      pip install pandas openpyxl docker &&
+      python prefect/jobs.py
+      "
+    networks:
+      - lakehouse-net  
 
 volumes:
   kafka_kraft: #creation of 'named volume' for Kafka container instead of bind mount (docker container will have permament storage which he will manage on its own)

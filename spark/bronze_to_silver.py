@@ -43,6 +43,7 @@ def main():
         .option("checkpointLocation", CHECKPOINT_PATH)
         .start(SILVER_PATH))
 
+    print("Silver Streaming started.")
     query.awaitTermination()
 
 if __name__ == "__main__":

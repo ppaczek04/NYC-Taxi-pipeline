@@ -33,7 +33,7 @@ def main():
     pandas_df = gold_hourly_stats.toPandas()
     pandas_df.to_excel("/app/lake/gold/hourly_report.xlsx", index=False)
     
-    print("Gold Delta table and Excel report generated!")
+    print("Gold Delta table and Excel report generated.")
     spark.stop()
 
 if __name__ == "__main__":

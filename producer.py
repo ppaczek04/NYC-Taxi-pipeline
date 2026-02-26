@@ -28,7 +28,7 @@ df = pd.read_parquet(FILE_PATH) # there we simulate the data getting into the sy
 
 print("Starting stream simulation...")
 
-batch_size = 10000
+batch_size = 10000 # reduce the dataframe to smaller size to iterate over
 for i in range(0, len(df), batch_size):
     batch = df.iloc[i : i + batch_size]
     for _, row in batch.iterrows():
