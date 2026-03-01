@@ -97,8 +97,9 @@ services:
     working_dir: /app
     environment:
       - PREFECT_API_URL=http://prefect-server:4200/api # prefect local server
-      - PREFECT_SERVER_DATABASE_TIMEOUT=10.0  # Increase the time as both prefectserver and orchiestrator want to save st to sqllite and it blocks
+      - PREFECT_SERVER_DATABASE_TIMEOUT=30.0  # Increase the time as both prefectserver and orchiestrator want to save st to sqllite and it blocks
       - PREFECT_SQLALCHEMY_BEGIN_ON_INIT=True
+      - PREFECT_WORKER_PREFETCH_SECONDS=30
     command: >
       bash -c "
       pip install pandas openpyxl docker &&

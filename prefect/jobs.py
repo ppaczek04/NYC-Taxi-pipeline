@@ -6,7 +6,7 @@ from prefect import flow, task, get_run_logger
 client = docker.from_env()
 
 @task(name="Run Spark Job via Docker")
-def run_spark_script(script_path: str, memory: str = "2g", is_streaming: bool = False):
+def run_spark_script(script_path: str, memory: str = "2g",cores: int = 2, is_streaming: bool = False):
     """
     Triggers a spark-submit command inside the spark-worker container.
     Matches the manual 'docker exec' commands done manually by me/user.
@@ -23,16 +23,19 @@ def run_spark_script(script_path: str, memory: str = "2g", is_streaming: bool = 
             return
         
     
-    logger.info(f"Task initiated: Running {script_path} with {memory} RAM allocation.")
+    logger.info(f"Task initiated: {script_path} | RAM: {memory} | Max Cores: {cores}")
 
     # Build the spark-submit command used in the terminal
     spark_command = [
         "/opt/spark/bin/spark-submit",
         "--master", "spark://spark-master:7077", # in spark-worker console commands automatically called spark-master help
         "--conf", "spark.jars.ivy=/tmp/.ivy2", # in prefect we need to mark him as he won't be automatically found
+
         "--driver-memory", memory,
         "--executor-memory", memory,
-        "--conf", "spark.executor.cores=2",
+        "--conf", f"spark.cores.max={cores}",
+        "--conf", f"spark.executor.cores={cores}",
+
         "--conf", "spark.default.parallelism=4",
         # Including both Delta and Kafka packages for all runs to prevent missing dependency errors
         "--packages", "io.delta:delta-spark_2.12:3.1.0,org.apache.spark:spark-sql-kafka-0-10_2.12:3.5.0",
@@ -67,22 +70,22 @@ def nyc_taxi_flow():
 
     # 1 >> Ingest historical Parquet data into Bronze layer (everything except last month)
     # (Batch process)
-    run_spark_script("/app/spark/batch_to_bronze.py", memory="2g")
+    run_spark_script("/app/spark/batch_to_bronze.py", memory="1g", cores=6)
     
     # 2 >> real-time Kafka ingestion into Bronze layer simulation
     # (Asynchronous stream) we load last month of data 1 records per 0.0001s (simulation of live data)
-    run_spark_script("/app/spark/stream_to_bronze.py", memory="2g", is_streaming=True)
+    run_spark_script("/app/spark/stream_to_bronze.py", memory="2g", cores=4, is_streaming=True)
     
     # 3 >> Transform Bronze data into Silver (Cleaning/Filtering)
     # (asynchronous stream)
-    run_spark_script("/app/spark/bronze_to_silver.py", memory="2g", is_streaming=True)
+    run_spark_script("/app/spark/bronze_to_silver.py", memory="2g", cores=4)
 
-    logger.info("Waiting 300 seconds for Streaming to deliver all the needed data...")
-    time.sleep(300) # Wait till silver loads 
+    logger.info("Waiting 60 seconds for Streaming to deliver all the needed data...")
+    time.sleep(60) # Wait till silver loads 
     
     # 4 >> Aggregate Silver data into Gold and export to Excel report
     # (Batch process)
-    run_spark_script("/app/spark/silver_to_gold.py", memory="1500M")
+    run_spark_script("/app/spark/silver_to_gold.py", memory="1500M", cores=6)
 
     logger.info("Pipeline sequence initiated successfully.")
 
