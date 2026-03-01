@@ -1,4 +1,5 @@
 import docker
+import time
 from prefect import flow, task, get_run_logger
 
 # Initialize the Docker client to communicate via /var/run/docker.sock
@@ -75,6 +76,9 @@ def nyc_taxi_flow():
     # 3 >> Transform Bronze data into Silver (Cleaning/Filtering)
     # (asynchronous stream)
     run_spark_script("/app/spark/bronze_to_silver.py", memory="2g", is_streaming=True)
+
+    logger.info("Waiting 300 seconds for Streaming to deliver all the needed data...")
+    time.sleep(300) # Wait till silver loads 
     
     # 4 >> Aggregate Silver data into Gold and export to Excel report
     # (Batch process)
@@ -83,7 +87,8 @@ def nyc_taxi_flow():
     logger.info("Pipeline sequence initiated successfully.")
 
 if __name__ == "__main__":
+    # (00:00, 04:00, 08:00, 12:00, 16:00, 20:00)
     nyc_taxi_flow.serve(
         name="nyc-taxi-pipeline-deployment",
-        cron="0 * * * *" # Optional: run every hour
+        cron="0 */4 * * *" 
     )

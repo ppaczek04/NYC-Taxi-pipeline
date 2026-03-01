@@ -20,14 +20,14 @@ producer_config = {
     'bootstrap.servers': KAFKA_SERVER,
     'client.id': 'nyc-producer'
 }
-
 producer = Producer(producer_config)
 
+############# HEAD LINE ADDED FOR TESTING ON SMALLER DATASET #############
 print("Loading parquet...")
-df = pd.read_parquet(FILE_PATH) # there we simulate the data getting into the system
+df = pd.read_parquet(FILE_PATH).head(30000) # there we simulate the data getting into the system
+##########################################################################
 
 print("Starting stream simulation...")
-
 batch_size = 10000 # reduce the dataframe to smaller size to iterate over
 for i in range(0, len(df), batch_size):
     batch = df.iloc[i : i + batch_size]

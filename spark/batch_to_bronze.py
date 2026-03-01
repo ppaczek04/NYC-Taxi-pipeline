@@ -20,8 +20,10 @@ def build_spark():
 def main():
     spark = build_spark()
     spark.sparkContext.setLogLevel("WARN")
-
-    df = spark.read.parquet(RAW_PATH)
+    ############ SAMPLE LINE ADDED FOR TESTING ON SMALLER DATASET ############
+    # df = spark.read.parquet(RAW_PATH)
+    df = spark.read.parquet(RAW_PATH).sample(withReplacement=False, fraction=0.1, seed=42)
+    ##########################################################################
 
     # df = df.withColumn(
     #     "pickup_ts",
