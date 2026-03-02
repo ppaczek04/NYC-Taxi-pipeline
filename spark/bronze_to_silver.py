@@ -17,9 +17,9 @@ def main():
     spark = build_spark()
     
     # load as Stream (even if its batch)
-    #bronze_df = spark.readStream.format("delta").load(BRONZE_PATH)
-    bronze_df = spark.read.format("delta").load(BRONZE_PATH)
-    print(f"Liczba wierszy w Bronze: {bronze_df.count()}")
+    bronze_df = spark.readStream.format("delta").load(BRONZE_PATH)
+    #bronze_df = spark.read.format("delta").load(BRONZE_PATH) ###
+    #print(f"Count of rows in bronze layer: {bronze_df.count()}")
 
     # cleaning
     silver_df = bronze_df.withColumn(
@@ -39,16 +39,18 @@ def main():
     ).drop("tpep_pickup_datetime", "tpep_dropoff_datetime")
 
     # saving to silver
-    # query = (silver_df.writeStream
-    #     .format("delta")
-    #     .outputMode("append")
-    #     .option("checkpointLocation", CHECKPOINT_PATH)
-    #     .start(SILVER_PATH))
+    query = (silver_df.writeStream
+        .format("delta")
+        .outputMode("append")
+        # make it check every 5 sec if sth appeared, not to miss data from stream (trial and error of why srtream data missing in silver)
+        .trigger(processingTime='5 seconds')
+        .option("checkpointLocation", CHECKPOINT_PATH)
+        .start(SILVER_PATH))
     
-    silver_df.write.format("delta").mode("overwrite").save(SILVER_PATH)
+    #silver_df.write.format("delta").mode("overwrite").save(SILVER_PATH) ###
 
     print("Silver Streaming started.")
-    #query.awaitTermination()
+    query.awaitTermination()
 
 if __name__ == "__main__":
     main()

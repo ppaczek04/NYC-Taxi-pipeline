@@ -28,8 +28,8 @@ def run_spark_script(script_path: str, memory: str = "2g",cores: int = 2, is_str
     # Build the spark-submit command used in the terminal
     spark_command = [
         "/opt/spark/bin/spark-submit",
-        "--master", "spark://spark-master:7077", # in spark-worker console commands automatically called spark-master help
-        "--conf", "spark.jars.ivy=/tmp/.ivy2", # in prefect we need to mark him as he won't be automatically found
+        "--master", "spark://spark-master:7077", 
+        "--conf", "spark.jars.ivy=/tmp/.ivy2", 
 
         "--driver-memory", memory,
         "--executor-memory", memory,
@@ -74,18 +74,27 @@ def nyc_taxi_flow():
     
     # 2 >> real-time Kafka ingestion into Bronze layer simulation
     # (Asynchronous stream) we load last month of data 1 records per 0.0001s (simulation of live data)
-    run_spark_script("/app/spark/stream_to_bronze.py", memory="2g", cores=4, is_streaming=True)
-    
+    run_spark_script("/app/spark/stream_to_bronze.py", memory="2g", cores=6, is_streaming=True)
+
+    time.sleep(15) # timier
+
     # 3 >> Transform Bronze data into Silver (Cleaning/Filtering)
     # (asynchronous stream)
-    run_spark_script("/app/spark/bronze_to_silver.py", memory="2g", cores=4)
+    run_spark_script("/app/spark/bronze_to_silver.py", memory="2g", cores=4, is_streaming=True)
 
-    logger.info("Waiting 60 seconds for Streaming to deliver all the needed data...")
-    time.sleep(60) # Wait till silver loads 
+    logger.info("Waiting 120 seconds for Streaming to deliver all the needed data...")
+    logger.info("Waiting for November data in Silver...")
+    container = client.containers.get("spark-worker")
+    for _ in range(20): # Sprawdzaj przez ok 3 minuty
+        check = container.exec_run("cat /app/lake/silver/rides/_delta_log/00000000000000000001.json")
+        if check.exit_code == 0:
+            logger.info("November data arrived in Silver!")
+            break
+        time.sleep(10)
     
     # 4 >> Aggregate Silver data into Gold and export to Excel report
     # (Batch process)
-    run_spark_script("/app/spark/silver_to_gold.py", memory="1500M", cores=6)
+    run_spark_script("/app/spark/silver_to_gold.py", memory="1500M", cores=4)
 
     logger.info("Pipeline sequence initiated successfully.")
 

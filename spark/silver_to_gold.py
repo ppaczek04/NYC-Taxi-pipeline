@@ -1,5 +1,5 @@
 from pyspark.sql import SparkSession
-from pyspark.sql.functions import col, hour, avg, sum, count
+from pyspark.sql.functions import col, hour, avg, sum, count, month, year
 
 def build_spark():
     return (SparkSession.builder 
@@ -32,6 +32,20 @@ def main():
     # Export to Excel for stakeholders
     pandas_df = gold_hourly_stats.toPandas()
     pandas_df.to_excel("/app/lake/gold/hourly_report.xlsx", index=False)
+
+
+    gold_monthly_stats = silver_df.groupBy(
+        year(col("pickup_time")).alias("year"),
+        month(col("pickup_time")).alias("month")
+    ).agg(
+        count("*").alias("trip_count")
+    ).orderBy("year", "month")
+    gold_monthly_stats.write.format("delta") \
+        .mode("overwrite") \
+        .save("/app/lake/gold/monthly_stats")
+    pandas_df = gold_monthly_stats.toPandas()
+    pandas_df.to_excel("/app/lake/gold/monthly_report.xlsx", index=False)
+    
     
     print("Gold Delta table and Excel report generated.")
     spark.stop()
