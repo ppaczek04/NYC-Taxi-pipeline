@@ -1,7 +1,7 @@
 # NYC Taxi Data Pipeline
 
 ## Description
-A scalable data pipeline built on the **Medallion Architecture** to process large-scale New York City taxi trip data. The system ingests raw events from Apache Kafka, manages stateful storage using Delta Lake, and orchestrates complex streaming and batch workflows using **Prefect 3.0**.
+A data pipeline built on the Medallion Architecture to process large-scale **New York City taxi trip data**. The system ingests raw events from Apache Kafka, manages stateful storage using Delta Lake, and orchestrates both batch loading historical data and streaming latest data in a unified way, all packed in Prefect orchestration tool for the convenience of monitoring the pipeline.
 
 ## Tech Stack
 * **Orchestration:** Prefect 3.0
@@ -13,7 +13,6 @@ A scalable data pipeline built on the **Medallion Architecture** to process larg
 
 ## Architecture
 The project follows the **Medallion Architecture** design pattern to ensure data quality and reliability:
-
 
 
 1.  **Bronze (Raw):** 
@@ -39,7 +38,7 @@ The entire pipeline is orchestrated by **Prefect**, managing dependencies betwee
 
 ## Current Status & Roadmap
 - [x] **Infrastructure:** Dockerized Spark, Kafka, and Prefect environment.
-- [*] **Bronze Layer:** Unified ingestion for both Batch and Stream. *(debugging)*
+- [x] DEBUGGING **Bronze Layer:** Unified ingestion for both Batch and Stream.
 - [x] **Silver Layer:** Real-time cleaning and schema evolution.
 - [x] **Orchestration:** Automated flow sequence with Docker-based job submission.
 - [ ] **Gold Layer (Optimization):** Refine complex window aggregations and KPI calculations. *(Planned)*
