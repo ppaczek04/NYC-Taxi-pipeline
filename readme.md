@@ -1,33 +1,46 @@
 # NYC Taxi Data Pipeline
 
 ## Description
-A scalable data pipeline built on the **Medallion Architecture** to process large-scale New York City taxi trip data. The system ingests raw events from Apache Kafka, manages stateful storage using Delta Lake, and performs real-time transformations to ensure data quality and analytical readiness.
+A scalable data pipeline built on the **Medallion Architecture** to process large-scale New York City taxi trip data. The system ingests raw events from Apache Kafka, manages stateful storage using Delta Lake, and orchestrates complex streaming and batch workflows using **Prefect 3.0**.
 
 ## Tech Stack
-* **Language:** Python (PySpark)
-* **Storage:** Delta Lake (Parquet-based)
-* **Processing:** Apache Spark (Standalone Cluster)
+* **Orchestration:** Prefect 3.0
+* **Processing:** Apache Spark 3.5.0 (Standalone Cluster)
+* **Storage:** Delta Lake 3.1.0 (ACID transactions & Schema Enforcement)
 * **Streaming:** Apache Kafka
+* **Language:** Python (PySpark)
 * **Infrastructure:** Docker & Docker Compose
 
 ## Architecture
-The project follows the **Medallion Architecture** design pattern:
+The project follows the **Medallion Architecture** design pattern to ensure data quality and reliability:
 
-[Image of medallion architecture for data engineering with bronze, silver and gold layers]
 
-1.  **Bronze (Raw):** Stores the raw event stream from Kafka. Includes technical metadata such as Kafka offsets, ingestion timestamps, and source file names to ensure full data lineage.
-2.  **Silver (Filtered & Cleaned):** Data is refined and structured. Transformations include:
-    * Casting raw fields to correct types (e.g., `Timestamp_NTZ`).
-    * Filtering out invalid business records (e.g., trips with 0 passengers or negative fare amounts).
-    * Initial feature engineering (e.g., calculating trip duration or `is_long_trip` flags).
-3.  **Gold (Curated):** *[Planned]* Business-level aggregates and KPIs optimized for reporting and ML models.
 
-## Flow
-1.  **Ingestion:** A `producer.py` script simulates a real-time stream of taxi trip data into a Kafka topic.
-2.  **Bronze Layer:** A Spark Structured Streaming job consumes the Kafka topic and writes the data into a Delta table at `/lake/bronze`.
-3.  **Silver Layer:** The `bronze_to_silver.py` streaming process reads from the Bronze table, applies schema enforcement and cleaning "on-the-fly," and sinks the result into `/lake/silver`.
+1.  **Bronze (Raw):** 
+    * **Batch Ingestion:** Historical Parquet data is loaded via `batch_to_bronze.py`.
+    * **Stream Ingestion:** Real-time event streams from Kafka are captured via `stream_to_bronze.py`.
+    * Includes technical metadata (offsets, timestamps) for full lineage.
+2.  **Silver (Cleaned & Augmented):** -- **Stream Processing:** `bronze_to_silver.py` reads from the Bronze Delta table.
+    * **Transformations:** Schema enforcement, type casting (e.g., `Timestamp_NTZ`), and business logic filtering (removing 0-passenger or negative-fare trips).
+3.  **Gold (Curated):** -- **Batch Processing:** `silver_to_gold.py` performs final business-level aggregations.
+    * **Reporting:** Generates curated datasets and KPI reports in Excel format.
+
+## Orchestration & Flow
+The entire pipeline is orchestrated by **Prefect**, managing dependencies between batch and streaming jobs:
+
+
+
+1.  **Historical Bootstrap:** Prefect triggers a Spark batch job to populate the Bronze layer with historical data.
+2.  **Streaming Initialization:** Real-time ingestion starts in the background (detached mode) to handle incoming Kafka traffic.
+3.  **Silver Transformation:** A secondary streaming process is launched to refine data as soon as it hits the Bronze layer.
+4.  **Final Aggregation:** Once the data is ready, a final Spark batch job generates the Gold layer reports.
 
 ---
 
-## Roadmap
-* **Gold Layer
+## Current Status & Roadmap
+- [x] **Infrastructure:** Dockerized Spark, Kafka, and Prefect environment.
+- [*] **Bronze Layer:** Unified ingestion for both Batch and Stream. *(debugging)*
+- [x] **Silver Layer:** Real-time cleaning and schema evolution.
+- [x] **Orchestration:** Automated flow sequence with Docker-based job submission.
+- [ ] **Gold Layer (Optimization):** Refine complex window aggregations and KPI calculations. *(Planned)*
+- [ ] **Data Quality Checks:** Implementation of Great Expectations or Delta Expectations for automated validation. *(Planned)*
