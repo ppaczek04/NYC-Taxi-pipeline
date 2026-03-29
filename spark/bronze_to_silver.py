@@ -29,7 +29,7 @@ def main():
         "dropoff_time", 
         col("tpep_dropoff_datetime").cast("timestamp")
     ).filter(
-        (col("passenger_count") > 0) & 
+        # (col("passenger_count") > 0) & 
         (col("trip_distance") > 0.0) &
         (col("fare_amount") > 0.0)
     ).withColumn(

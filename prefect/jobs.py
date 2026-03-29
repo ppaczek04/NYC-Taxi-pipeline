@@ -76,22 +76,15 @@ def nyc_taxi_flow():
     # (Asynchronous stream) we load last month of data 1 records per 0.0001s (simulation of live data)
     run_spark_script("/app/spark/stream_to_bronze.py", memory="2g", cores=6, is_streaming=True)
 
-    time.sleep(15) # timier
+    time.sleep(60) # timer
 
     # 3 >> Transform Bronze data into Silver (Cleaning/Filtering)
     # (asynchronous stream)
     run_spark_script("/app/spark/bronze_to_silver.py", memory="2g", cores=4, is_streaming=True)
-
-    logger.info("Waiting 120 seconds for Streaming to deliver all the needed data...")
-    logger.info("Waiting for November data in Silver...")
-    container = client.containers.get("spark-worker")
-    for _ in range(20): # Sprawdzaj przez ok 3 minuty
-        check = container.exec_run("cat /app/lake/silver/rides/_delta_log/00000000000000000001.json")
-        if check.exit_code == 0:
-            logger.info("November data arrived in Silver!")
-            break
-        time.sleep(10)
     
+    logger.info("Waiting 120 seconds for Streaming to deliver all the needed data...")
+    time.sleep(120) 
+
     # 4 >> Aggregate Silver data into Gold and export to Excel report
     # (Batch process)
     run_spark_script("/app/spark/silver_to_gold.py", memory="1500M", cores=4)

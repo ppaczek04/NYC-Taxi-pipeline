@@ -23,12 +23,10 @@ def main():
         avg("fare_amount").alias("avg_fare"),
         sum("tip_amount").alias("total_tips")
     ).orderBy("pickup_hour")
-
     # Save to Gold
     gold_hourly_stats.write.format("delta") \
         .mode("overwrite") \
         .save("/app/lake/gold/hourly_stats")
-
     # Export to Excel for stakeholders
     pandas_df = gold_hourly_stats.toPandas()
     pandas_df.to_excel("/app/lake/gold/hourly_report.xlsx", index=False)
@@ -40,9 +38,11 @@ def main():
     ).agg(
         count("*").alias("trip_count")
     ).orderBy("year", "month")
+    # Save to Gold
     gold_monthly_stats.write.format("delta") \
         .mode("overwrite") \
         .save("/app/lake/gold/monthly_stats")
+    # Export to Excel for stakeholders
     pandas_df = gold_monthly_stats.toPandas()
     pandas_df.to_excel("/app/lake/gold/monthly_report.xlsx", index=False)
     
