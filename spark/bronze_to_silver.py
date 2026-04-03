@@ -18,8 +18,6 @@ def main():
     
     # load as Stream (even if its batch)
     bronze_df = spark.readStream.format("delta").load(BRONZE_PATH)
-    #bronze_df = spark.read.format("delta").load(BRONZE_PATH) ###
-    #print(f"Count of rows in bronze layer: {bronze_df.count()}")
 
     # cleaning
     silver_df = bronze_df.withColumn(

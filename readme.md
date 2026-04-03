@@ -5,7 +5,7 @@
 ## 1. Description
 This project is an **End-to-End Data Engineering Pipeline** for NYC Yellow Taxi trip data. The system is built as a **Lakehouse with Delta Tables**  utilizing the Medallion Architecture (Bronze, Silver, Gold) to ensure data consistency and performance.
 
-It features a hybrid ingestion strategy, combining **Batch processing** for historical Parquet files and **Real-time Streaming** via Kafka for current records. The solution is fully containerized and automated to handle data cleaning, unification, and transformation.
+It features a hybrid ingestion strategy, combining **Batch processing** for historical Parquet files and **Real-time Streaming** via Kafka for current records (simulation of loading latest records as live). The solution is fully containerized and automated to handle data cleaning, unification, and transformation.
 
 ## 2. Technological Stack
 * **Languages:** Python 3.11
@@ -24,6 +24,8 @@ The project implements a classic Medallion Architecture to transform raw data in
 * **Bronze:** Raw data ingestion from Parquet (Batch) and Kafka (Stream) into Delta tables with minimal transformation.
 * **Silver:** Data cleaning, filtering (removing trips with zero distance/fare), and schema unification to handle different source formats.
 * **Gold:** High-level business aggregations (Hourly and Monthly statistics) exported to Delta and Excel reports.
+
+![data_arch_scheme](docs/data_architecture.png "pipeline scheme")
 
 ## 4. Project Setup
 
