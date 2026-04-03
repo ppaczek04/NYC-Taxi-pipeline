@@ -62,7 +62,7 @@ docker-compose up -d
 ## 5. Containers Architecture
 The project is divided into specialized services communicating via the `lakehouse-net` network:
 
-* **`kafka`**: The message broker that handles the real-time stream of taxi records.
+* **`kafka (NYC_Taxi)`**: The message broker that handles the real-time stream of taxi records.
 * **`nyc-producer`**: A Python service that reads November 2025 data and streams it to Kafka, simulating live traffic.
 * **`spark-master`**: The coordinator of the Spark cluster, managing resource allocation.
 * **`spark-worker`**: The execution unit where all heavy PySpark jobs (Batch and Stream) are performed.
