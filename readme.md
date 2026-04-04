@@ -20,8 +20,7 @@ It features a hybrid ingestion strategy, combining **Batch processing** for hist
     * `pandas` & `openpyxl` (Reporting and Excel generation)
 
 ## 3. Data Architecture & Pipeline Flow
-The source of the data for this project is website: 
-https://www.nyc.gov/site/tlc/about/tlc-trip-record-data.page
+The source of the data for this project is website: https://www.nyc.gov/site/tlc/about/tlc-trip-record-data.page
 
 The project implements a classic Medallion Architecture to transform raw data into insights:
 * **Bronze:** Raw data ingestion from Parquet (Batch) and Kafka (Stream) into Delta tables with minimal transformation.
