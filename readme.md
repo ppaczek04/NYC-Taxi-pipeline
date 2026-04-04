@@ -5,6 +5,8 @@
 ## 1. Description
 This project is an **End-to-End Data Engineering Pipeline** for NYC Yellow Taxi trip data. The system is built as a **Lakehouse with Delta Tables**  utilizing the Medallion Architecture (Bronze, Silver, Gold) to ensure data consistency and performance.
 
+The source of the data is website: https://www.nyc.gov/site/tlc/about/tlc-trip-record-data.page
+
 It features a hybrid ingestion strategy, combining **Batch processing** for historical Parquet files and **Real-time Streaming** via Kafka for current records (simulation of loading latest records as live). The solution is fully containerized and automated to handle data cleaning, unification, and transformation.
 
 ## 2. Technological Stack
